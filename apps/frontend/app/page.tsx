@@ -1,5 +1,4 @@
 import Link from 'next/link';
-import ThemeSwitcher from '@/components/ThemeSwitcher';
 
 export default function Home() {
   return (
@@ -10,11 +9,6 @@ export default function Home() {
         color: 'var(--text-primary)',
       }}
     >
-      {/* Top Right Theme Switcher */}
-      <div className="absolute top-6 right-6">
-        <ThemeSwitcher />
-      </div>
-
       <div className="text-center max-w-xl mx-auto space-y-6">
         <div
           className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold border"
