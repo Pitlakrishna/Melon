@@ -28,14 +28,14 @@ export default function CategoryPage() {
   const { data: categoriesData, isLoading, isError, error } = useQuery<{ status: string; data: Category[] }>({
     queryKey: ['categories'],
     queryFn: async () => {
-      const res = await axios.get(`${API_URL}/products/categories`);
+      const res = await axios.get(`${API_URL}/categories`);
       return res.data;
     },
   });
 
   const createCategory = useMutation({
     mutationFn: async (name: string) => {
-      const res = await axios.post(`${API_URL}/products/categories`, { name });
+      const res = await axios.post(`${API_URL}/categories`, { name });
       return res.data;
     },
     onSuccess: () => {
@@ -46,7 +46,7 @@ export default function CategoryPage() {
 
   const editCategory = useMutation({
     mutationFn: async ({ id, name }: { id: string; name: string }) => {
-      const res = await axios.patch(`${API_URL}/products/categories/${id}`, { name });
+      const res = await axios.patch(`${API_URL}/categories/${id}`, { name });
       return res.data;
     },
     onSuccess: () => {
@@ -57,7 +57,7 @@ export default function CategoryPage() {
 
   const deleteCategory = useMutation({
     mutationFn: async (id: string) => {
-      const res = await axios.delete(`${API_URL}/products/categories/${id}`);
+      const res = await axios.delete(`${API_URL}/categories/${id}`);
       return res.data;
     },
     onSuccess: () => {

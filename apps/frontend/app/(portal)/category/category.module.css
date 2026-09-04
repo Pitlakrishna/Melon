@@ -111,10 +111,10 @@
 }
 
 .cardCategory:hover {
-  background: var(--bg-card-hover);
   border-color: var(--border-hover);
   box-shadow: var(--shadow-card), 0 10px 28px var(--accent-glow);
   transform: translateY(-3px);
+  cursor: pointer;
 }
 
 .cardTitle {
