@@ -36,10 +36,6 @@ export default function ThemeSwitcher() {
         }}
         title="Change Theme"
       >
-        <span
-          className="w-3.5 h-3.5 rounded-full border border-black/10 shadow-sm shrink-0"
-          style={{ background: activeTheme.color }}
-        />
         <IoColorPaletteOutline className="text-base" style={{ color: 'var(--text-secondary)' }} />
         <span className="hidden sm:inline text-xs font-semibold">{activeTheme.name}</span>
       </button>

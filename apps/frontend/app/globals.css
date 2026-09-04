@@ -1,9 +1,5 @@
 @import "tailwindcss";
 
-/* ==========================================================================
-   THEME DEFINITIONS: 2 Light (Crisp White & Warm Cream) + 3 Rich Themes
-   ========================================================================== */
-
 /* 1. CRISP LIGHT (Clean White Background, Deep Slate Text, Royal Indigo Accent) */
 :root, [data-theme="light"] {
   --bg-page: #ffffff;
@@ -78,50 +74,50 @@
 
 /* 4. CYBER EMERALD (Vibrant Forest Jade & Mint - Not overly dark) */
 [data-theme="emerald"] {
-  --bg-page: #062019;
-  --bg-sidebar: #0a2b22;
-  --bg-card: #0f372c;
-  --bg-card-hover: #164e3e;
-  --bg-dashed: rgba(15, 55, 44, 0.4);
-  --bg-modal: #0f372c;
-  --border-subtle: #194d3f;
-  --border-card: #1d5747;
-  --border-hover: #34d399;
-  --accent: #10b981;
-  --accent-hover: #059669;
-  --accent-gradient: linear-gradient(135deg, #10b981 0%, #059669 100%);
-  --accent-glow: rgba(16, 185, 129, 0.35);
-  --accent-glow-hover: rgba(52, 211, 153, 0.55);
-  --accent-subtle: rgba(16, 185, 129, 0.18);
-  --accent-subtle-border: rgba(52, 211, 153, 0.4);
-  --text-primary: #f0fdf4;
-  --text-secondary: #a7f3d0;
-  --text-accent: #34d399;
-  --shadow-card: 0 8px 24px rgba(0, 0, 0, 0.2);
+  --bg-page: #f6fbf9;
+  --bg-sidebar: #ecfdf5;
+  --bg-card: #ffffff;
+  --bg-card-hover: #f0fdf4;
+  --bg-dashed: rgba(16, 185, 129, 0.08);
+  --bg-modal: #ffffff;
+  --border-subtle: #d1fae5;
+  --border-card: #a7f3d0;
+  --border-hover: #10b981;
+  --accent: #059669;
+  --accent-hover: #047857;
+  --accent-gradient: linear-gradient(135deg, #059669 0%, #065f46 100%);
+  --accent-glow: rgba(5, 150, 105, 0.15);
+  --accent-glow-hover: rgba(5, 150, 105, 0.30);
+  --accent-subtle: rgba(5, 150, 105, 0.08);
+  --accent-subtle-border: rgba(5, 150, 105, 0.20);
+  --text-primary: #1a1a2e;
+  --text-secondary: #4a4a6a;
+  --text-accent: #059669;
+  --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.06);
 }
 
 /* 5. SUNSET RUBY (Rich Velvet Plum & Rose - Not overly dark) */
 [data-theme="ruby"] {
-  --bg-page: #230d17;
-  --bg-sidebar: #2d111e;
-  --bg-card: #3a1727;
-  --bg-card-hover: #4e1f35;
-  --bg-dashed: rgba(58, 23, 39, 0.4);
-  --bg-modal: #3a1727;
-  --border-subtle: #4d2034;
-  --border-card: #5a263e;
-  --border-hover: #fb7185;
-  --accent: #f43f5e;
-  --accent-hover: #e11d48;
-  --accent-gradient: linear-gradient(135deg, #f43f5e 0%, #be123c 100%);
-  --accent-glow: rgba(244, 63, 94, 0.35);
-  --accent-glow-hover: rgba(251, 113, 133, 0.55);
-  --accent-subtle: rgba(244, 63, 94, 0.18);
-  --accent-subtle-border: rgba(251, 113, 133, 0.4);
-  --text-primary: #fff1f2;
-  --text-secondary: #fecdd3;
-  --text-accent: #fb7185;
-  --shadow-card: 0 8px 24px rgba(0, 0, 0, 0.2);
+  --bg-page: #faf8f9;
+  --bg-sidebar: #fdf2f8;
+  --bg-card: #ffffff;
+  --bg-card-hover: #fdf2f8;
+  --bg-dashed: rgba(195, 71, 106, 0.08);
+  --bg-modal: #ffffff;
+  --border-subtle: #fce7f3;
+  --border-card: #fbcfe8;
+  --border-hover: #c3476a;
+  --accent: #c3476a;
+  --accent-hover: #a83a5a;
+  --accent-gradient: linear-gradient(135deg, #c3476a 0%, #8a2e48 100%);
+  --accent-glow: rgba(195, 71, 106, 0.15);
+  --accent-glow-hover: rgba(195, 71, 106, 0.30);
+  --accent-subtle: rgba(195, 71, 106, 0.10);
+  --accent-subtle-border: rgba(195, 71, 106, 0.25);
+  --text-primary: #1a1a2e;
+  --text-secondary: #4a4a6a;
+  --text-accent: #c3476a;
+  --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.06);
 }
 
 @theme inline {
