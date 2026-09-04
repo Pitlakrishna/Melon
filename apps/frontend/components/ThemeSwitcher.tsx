@@ -35,12 +35,11 @@ export default function ThemeSwitcher() {
           color: 'var(--text-primary)',
         }}
         title="Change Theme"
-      >
+      > 
         <IoColorPaletteOutline className="text-base" style={{ color: 'var(--text-secondary)' }} />
         <span className="hidden sm:inline text-xs font-semibold">{activeTheme.name}</span>
       </button>
 
-      {/* Dropdown Menu */}
       {isOpen && (
         <div
           className="absolute right-0 mt-2 w-56 rounded-2xl p-2 z-50 animate-in fade-in zoom-in-95 duration-150 border"
