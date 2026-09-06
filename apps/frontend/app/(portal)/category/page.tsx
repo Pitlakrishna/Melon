@@ -4,9 +4,11 @@ import Form from "@/components/PopUp";
 import ThemeSwitcher from "@/components/ThemeSwitcher";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { IoMdAdd } from "react-icons/io";
-import { FiEdit2, FiTrash2, FiSearch, FiFolder, FiX, FiCheck } from "react-icons/fi";
+import { FiEdit2, FiTrash2, FiSearch, FiFolder, FiX, FiCheck, FiAlertCircle } from "react-icons/fi";
 import axios from "axios";
 import { useState, useMemo } from "react";
+import { useToast } from "@/context/ToastContext";
+import { categoryFormSchema } from "@/lib/validations";
 import styles from "./category.module.css";
 
 interface Category {
@@ -21,11 +23,27 @@ export default function CategoryPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
 
+  // Validation State
+  const [categoryError, setCategoryError] = useState("");
+  const [categoryTouched, setCategoryTouched] = useState(false);
+  const [serverError, setServerError] = useState("");
+
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1';
   const clientQuery = useQueryClient();
+  const toast = useToast();
+
+  // Validate single category field using Zod
+  const validateWithZod = (val: string): string => {
+    const result = categoryFormSchema.safeParse({ name: val });
+    if (!result.success) {
+      const fieldErrors = result.error.flatten().fieldErrors;
+      return fieldErrors.name?.[0] || 'Invalid category name.';
+    }
+    return '';
+  };
 
   // Fetch Categories
-  const { data: categoriesData, isLoading, isError, error } = useQuery<{ status: string; data: Category[] }>({
+  const { data: categoriesData, isLoading, isError, error, refetch } = useQuery<{ status: string; data: Category[] }>({
     queryKey: ['categories'],
     queryFn: async () => {
       const res = await axios.get(`${API_URL}/categories`);
@@ -33,28 +51,43 @@ export default function CategoryPage() {
     },
   });
 
+  // Create Category Mutation (using TanStack Query status)
   const createCategory = useMutation({
     mutationFn: async (name: string) => {
       const res = await axios.post(`${API_URL}/categories`, { name });
       return res.data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       clientQuery.invalidateQueries({ queryKey: ['categories'] });
+      toast.success(`Category "${data?.data?.name || categoryName}" created successfully!`, 'Category Created');
       handleCloseModal();
+    },
+    onError: (err: any) => {
+      const message = err.response?.data?.message || 'Failed to create category. Please check your input.';
+      setServerError(message);
+      toast.error(message, 'Creation Failed');
     },
   });
 
+  // Edit Category Mutation (using TanStack Query status)
   const editCategory = useMutation({
     mutationFn: async ({ id, name }: { id: string; name: string }) => {
       const res = await axios.patch(`${API_URL}/categories/${id}`, { name });
       return res.data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       clientQuery.invalidateQueries({ queryKey: ['categories'] });
+      toast.success(`Category updated successfully!`, 'Category Updated');
       handleCloseModal();
+    },
+    onError: (err: any) => {
+      const message = err.response?.data?.message || 'Failed to update category.';
+      setServerError(message);
+      toast.error(message, 'Update Failed');
     },
   });
 
+  // Delete Category Mutation
   const deleteCategory = useMutation({
     mutationFn: async (id: string) => {
       const res = await axios.delete(`${API_URL}/categories/${id}`);
@@ -62,18 +95,29 @@ export default function CategoryPage() {
     },
     onSuccess: () => {
       clientQuery.invalidateQueries({ queryKey: ['categories'] });
+      toast.success('Category deleted successfully.', 'Deleted');
+    },
+    onError: (err: any) => {
+      const message = err.response?.data?.message || 'Failed to delete category.';
+      toast.error(message, 'Delete Failed');
     },
   });
 
   const openCreateModel = () => {
     setEditingId(null);
     setCategoryName('');
+    setCategoryError('');
+    setCategoryTouched(false);
+    setServerError('');
     setOpenModel(true);
   };
 
   const openEditModel = (cat: Category) => {
     setEditingId(cat.id);
     setCategoryName(cat.name);
+    setCategoryError('');
+    setCategoryTouched(false);
+    setServerError('');
     setOpenModel(true);
   };
 
@@ -81,13 +125,24 @@ export default function CategoryPage() {
     setOpenModel(false);
     setEditingId(null);
     setCategoryName('');
+    setCategoryError('');
+    setCategoryTouched(false);
+    setServerError('');
   };
 
   const handleCategorySubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const trimmed = categoryName.trim();
-    if (!trimmed) return;
+    setServerError('');
+    setCategoryTouched(true);
 
+    // Validate with Zod before triggering TanStack mutation
+    const validationErr = validateWithZod(categoryName);
+    if (validationErr) {
+      setCategoryError(validationErr);
+      return;
+    }
+
+    const trimmed = categoryName.trim();
     if (editingId) {
       editCategory.mutate({ id: editingId, name: trimmed });
     } else {
@@ -120,6 +175,7 @@ export default function CategoryPage() {
       .replace(/^-+|-+$/g, '');
   }, [categoryName]);
 
+  // Use TanStack mutation status directly
   const isSubmitting = createCategory.isPending || editCategory.isPending;
 
   return (
@@ -165,8 +221,9 @@ export default function CategoryPage() {
                 <button
                   type="button"
                   onClick={() => setSearchQuery('')}
-                  className="absolute right-3  top-1/2 -translate-y-1/2 opacity-50 hover:opacity-100 transition-opacity cursor-pointer"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 opacity-50 hover:opacity-100 transition-opacity cursor-pointer"
                   style={{ color: 'var(--text-primary)' }}
+                  aria-label="Clear search"
                 >
                   <FiX className="text-sm" />
                 </button>
@@ -206,9 +263,16 @@ export default function CategoryPage() {
         {isError && (
           <div className="p-6 bg-red-950/40 border border-red-800/60 rounded-2xl text-red-200">
             <h3 className="font-semibold text-lg mb-1">Failed to load categories</h3>
-            <p className="text-sm text-red-300/80">
+            <p className="text-sm text-red-300/80 mb-3">
               {error instanceof Error ? error.message : 'An unexpected error occurred.'}
             </p>
+            <button
+              type="button"
+              onClick={() => refetch()}
+              className="px-3.5 py-1.5 text-xs font-semibold rounded-lg bg-red-800 hover:bg-red-700 text-white cursor-pointer transition-colors"
+            >
+              Retry
+            </button>
           </div>
         )}
 
@@ -248,58 +312,65 @@ export default function CategoryPage() {
               borderColor: 'var(--border-subtle)',
             }}
           >
-            <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-              No categories found matching &ldquo;<span className="font-medium" style={{ color: 'var(--text-primary)' }}>{searchQuery}</span>&rdquo;
+            <FiSearch className="text-4xl mx-auto mb-3 opacity-30" />
+            <h3 className="text-base font-semibold mb-1">No matching categories</h3>
+            <p className="text-sm mb-4" style={{ color: 'var(--text-secondary)' }}>
+              No categories found matching &quot;{searchQuery}&quot;.
             </p>
             <button
+              type="button"
               onClick={() => setSearchQuery('')}
-              className="mt-3 text-sm font-medium cursor-pointer"
-              style={{ color: 'var(--text-accent)' }}
+              className={styles.btnSecondary}
             >
-              Clear search filter
+              Clear search query
             </button>
           </div>
         )}
 
-        {/* Categories Grid */}
-        {!isLoading && !isError && filteredCategories.length > 0 && (
+        {/* Grid List with Create New Category Card */}
+        {!isLoading && !isError && categories.length > 0 && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-            {/* Create Category Dashed Card */}
-            <div onClick={openCreateModel} className={styles.cardDashed}>
+            {/* Create Card Trigger */}
+            <div
+              onClick={openCreateModel}
+              className={styles.cardDashed}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') openCreateModel();
+              }}
+            >
               <div className={styles.cardDashedIcon}>
                 <IoMdAdd />
               </div>
-              <span className="text-sm font-semibold hover:opacity-90 transition-opacity">
-                Add New Category
-              </span>
-              <span className="text-xs mt-0.5" style={{ color: 'var(--text-secondary)' }}>
-                Click to configure
-              </span>
+              <h3 className="text-base font-semibold mb-1">Add Category</h3>
+              <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+                Create a new product group
+              </p>
             </div>
 
-            {/* Category Cards */}
+            {/* Existing Categories */}
             {filteredCategories.map((cat) => (
-              <div key={cat.id} className={styles.cardCategory}>
-                {/* Ambient Top Glow Border on hover */}
-                <div className={styles.topGlow} />
-
-                {/* Card Header & Controls */}
+              <div
+                key={cat.id}
+                className={styles.cardCategory}
+                onClick={() => openEditModel(cat)}
+              >
                 <div>
-                  <div className="flex items-start justify-between gap-3 mb-2">
-                    <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-center gap-3">
                       <div className={styles.cardAvatar}>
-                        {cat.name.charAt(0).toUpperCase()}
+                        <FiFolder />
                       </div>
-                      <h2
-                        className={styles.cardTitle}
-                        title={cat.name}
-                      >
-                        {cat.name}
-                      </h2>
+                      <div className="min-w-0 pr-2">
+                        <h3 className={styles.cardTitle} title={cat.name}>
+                          {cat.name}
+                        </h3>
+                      </div>
                     </div>
 
                     {/* Action Buttons */}
-                    <div className="flex items-center gap-1 shrink-0">
+                    <div className="flex items-center gap-1">
                       <button
                         type="button"
                         onClick={(e) => {
@@ -317,11 +388,15 @@ export default function CategoryPage() {
                           e.stopPropagation();
                           handleDelete(cat.id, cat.name);
                         }}
-                        disabled={deleteCategory.isPending}
+                        disabled={deleteCategory.isPending && deleteCategory.variables === cat.id}
                         className={styles.btnIconDanger}
                         title="Delete Category"
                       >
-                        <FiTrash2 className="text-sm" />
+                        {deleteCategory.isPending && deleteCategory.variables === cat.id ? (
+                          <span className="inline-block w-3.5 h-3.5 border-2 border-red-400 border-t-transparent rounded-full animate-spin" />
+                        ) : (
+                          <FiTrash2 className="text-sm" />
+                        )}
                       </button>
                     </div>
                   </div>
@@ -347,35 +422,64 @@ export default function CategoryPage() {
 
         {/* Modal Form */}
         <Form modelOpen={openModel} setModelOpen={handleCloseModal}>
-          <form onSubmit={handleCategorySubmit} className="space-y-5">
-            <div className="flex items-center gap-3 mb-2">
-              <div className={styles.cardAvatar} style={{ width: '2.5rem', height: '2.5rem', fontSize: '1.1rem' }}>
+          <form onSubmit={handleCategorySubmit} className="space-y-3" noValidate>
+            <div className="flex items-center gap-2.5 mb-1">
+              <div className={styles.cardAvatar} style={{ width: '2rem', height: '2rem', fontSize: '0.95rem' }}>
                 <FiFolder />
               </div>
               <div>
-                <h3 className="text-lg font-bold">
+                <h3 className="text-base font-bold">
                   {editingId ? 'Edit Category' : 'Create Category'}
                 </h3>
-                <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+                <p className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
                   {editingId ? 'Modify category naming' : 'Add a new category classification'}
                 </p>
               </div>
             </div>
 
-            <div className="space-y-2">
-              <label className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--text-secondary)' }}>
-                Category Name
-              </label>
+            {/* Server Error Alert Banner */}
+            {serverError && (
+              <div className={styles.alertBanner} role="alert">
+                <FiAlertCircle className="text-sm flex-shrink-0" />
+                <span>{serverError}</span>
+              </div>
+            )}
+
+            <div className="space-y-1">
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--text-secondary)' }}>
+                  Category Name *
+                </label>
+                {categoryTouched && categoryError && (
+                  <span className={styles.fieldError}>
+                    {categoryError}
+                  </span>
+                )}
+              </div>
               <input
                 placeholder="e.g. Sparkling Drinks"
                 value={categoryName}
-                onChange={(e) => setCategoryName(e.target.value)}
-                className={styles.inputField}
+                onChange={(e) => {
+                  setCategoryName(e.target.value);
+                  if (categoryTouched) {
+                    setCategoryError(validateWithZod(e.target.value));
+                  }
+                  if (serverError) setServerError('');
+                }}
+                onBlur={() => {
+                  setCategoryTouched(true);
+                  setCategoryError(validateWithZod(categoryName));
+                }}
+                className={`${styles.inputField} ${categoryTouched && categoryError ? styles.inputError : ''}`}
                 autoFocus
+                disabled={isSubmitting}
+                aria-invalid={Boolean(categoryTouched && categoryError)}
               />
-              {categoryName.trim() && (
-                <p className="text-xs font-mono pt-1" style={{ color: 'var(--text-secondary)' }}>
-                  Slug: <span style={{ color: 'var(--text-accent)' }}>/{slugPreview}</span>
+              
+
+              {categoryName.trim() && !categoryError && (
+                <p className="text-[11px] font-mono pt-0.5" style={{ color: 'var(--text-secondary)' }}>
+                  Slug preview: <span style={{ color: 'var(--text-accent)' }}>/{slugPreview}</span>
                 </p>
               )}
             </div>
@@ -385,15 +489,20 @@ export default function CategoryPage() {
                 type="button"
                 onClick={handleCloseModal}
                 className={styles.btnSecondary}
+                disabled={isSubmitting}
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                disabled={isSubmitting || !categoryName.trim()}
+                disabled={isSubmitting}
                 className={styles.btnPrimary}
               >
-                <FiCheck className="text-sm" />
+                {isSubmitting ? (
+                  <span className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <FiCheck className="text-sm" />
+                )}
                 <span>
                   {isSubmitting
                     ? 'Saving...'

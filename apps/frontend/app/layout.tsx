@@ -26,6 +26,24 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       suppressHydrationWarning
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
+      <head>
+        <script
+          id="theme-initializer"
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                try {
+                  var saved = localStorage.getItem('app-theme');
+                  var valid = ['light', 'cream', 'indigo', 'emerald', 'ruby'];
+                  if (saved && valid.indexOf(saved) !== -1) {
+                    document.documentElement.setAttribute('data-theme', saved);
+                  }
+                } catch (e) {}
+              })();
+            `,
+          }}
+        />
+      </head>
       <body className="min-h-full flex flex-col transition-colors duration-300">
         <QueryProvider>
           {children}

@@ -2,13 +2,18 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import ThemeSwitcher from './ThemeSwitcher';
-
+import { TbCategoryPlus } from "react-icons/tb";
+import { CiUser } from "react-icons/ci";
+import { IoBagHandleOutline } from "react-icons/io5";
+import { MdOutlineTaskAlt } from "react-icons/md";
 export default function Sidebar() {
   const pathname = usePathname();
 
   const navItems = [
-    { name: 'Categories', href: '/category', icon: '📁' },
+    { name: 'Categories', href: '/category', icon: <TbCategoryPlus size={17} /> },
+    { name: 'Buyer', href: '/buyer', icon: <CiUser size={17} /> },
+    { name: 'Order History', href: '/history', icon: <IoBagHandleOutline size={17} /> },
+    { name: 'Tasks', href: '/tasks', icon: <MdOutlineTaskAlt size={17} /> },
   ];
 
   return (

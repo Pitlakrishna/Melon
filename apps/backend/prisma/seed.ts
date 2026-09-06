@@ -1,5 +1,4 @@
 import { PrismaClient } from '@prisma/client';
-import * as bcrypt from 'bcryptjs';
 import dotenv from 'dotenv';
 import path from 'path';
 
@@ -9,285 +8,219 @@ dotenv.config({ path: path.resolve(__dirname, '../.env'), override: true });
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log('Seeding database...');
+  console.log('Seeding database with categories, buyers, and order history...');
 
-  // 0. Clear existing data to ensure idempotency
-  console.log('Clearing existing database tables...');
-  await prisma.orderItem.deleteMany();
-  await prisma.order.deleteMany();
-  await prisma.inventory.deleteMany();
-  await prisma.productVariant.deleteMany();
-  await prisma.product.deleteMany();
-  await prisma.category.deleteMany();
-  await prisma.refreshToken.deleteMany();
-  await prisma.user.deleteMany();
-
-  // 1. Create Users
-  const customerPassword = await bcrypt.hash('Password123', 10);
-  const adminPassword = await bcrypt.hash('AdminPassword123', 10);
-
-  const customer = await prisma.user.upsert({
-    where: { email: 'customer@store.com' },
-    update: {},
-    create: {
-      email: 'customer@store.com',
-      name: 'John Customer',
-      password: customerPassword,
-      role: 'CUSTOMER',
-    },
-  });
-
-  const admin = await prisma.user.upsert({
-    where: { email: 'admin@store.com' },
-    update: {},
-    create: {
-      email: 'admin@store.com',
-      name: 'Jane Admin',
-      password: adminPassword,
-      role: 'ADMIN',
-    },
-  });
-
-  console.log('Users seeded:', { customer: customer.email, admin: admin.email });
+  // 1. Clear existing data safely
+  await (prisma as any).order?.deleteMany({});
+  await (prisma as any).buyer?.deleteMany({});
+  await (prisma as any).category?.deleteMany({});
 
   // 2. Create Categories
-  const beveragesParent = await prisma.category.upsert({
-    where: { slug: 'beverages' },
-    update: {},
-    create: {
-      name: 'Beverages',
-      slug: 'beverages',
-    },
-  });
-
-  const booksParent = await prisma.category.upsert({
-    where: { slug: 'books' },
-    update: {},
-    create: {
-      name: 'Books',
-      slug: 'books',
-    },
-  });
-
-  const softDrinks = await prisma.category.upsert({
-    where: { slug: 'soft-drinks' },
-    update: {},
-    create: {
-      name: 'Soft Drinks',
-      slug: 'soft-drinks',
-      parentId: beveragesParent.id,
-    },
-  });
-
-  const energyDrinks = await prisma.category.upsert({
-    where: { slug: 'energy-drinks' },
-    update: {},
-    create: {
-      name: 'Energy Drinks',
-      slug: 'energy-drinks',
-      parentId: beveragesParent.id,
-    },
-  });
-
-  const techBooks = await prisma.category.upsert({
-    where: { slug: 'technology-software' },
-    update: {},
-    create: {
-      name: 'Technology & Software',
-      slug: 'technology-software',
-      parentId: booksParent.id,
-    },
-  });
-
-  console.log('Categories seeded.');
-
-  // 3. Create Products & Variants
-  // Product 1: Classic Cola (Drink)
-  const colaProduct = await prisma.product.create({
+  const categorySparkling = await (prisma as any).category.create({
     data: {
-      name: 'Classic Cola',
-      description: 'Refreshing classic cola flavor with carbonated water and natural flavors.',
-      categoryId: softDrinks.id,
-      status: 'ACTIVE',
-      specs: {
-        volumeMl: 330,
-        ingredients: ['Carbonated Water', 'Sugar', 'Caramel Color', 'Phosphoric Acid', 'Natural Flavors', 'Caffeine'],
-        sugarGrams: 35,
-        caffeineMg: 32,
-        packagingType: 'CAN',
-      },
-      variants: {
-        create: [
-          {
-            name: 'Single Can (330ml)',
-            sku: 'COLA-330ML-CAN',
-            price: 1.49,
-            inventory: {
-              create: {
-                stock: 120,
-                warehouse: 'Main Warehouse - Aisle 4',
-              },
-            },
-          },
-          {
-            name: 'Pack of 6 Cans',
-            sku: 'COLA-330ML-PACK6',
-            price: 6.99,
-            inventory: {
-              create: {
-                stock: 45,
-                warehouse: 'Main Warehouse - Aisle 4',
-              },
-            },
-          },
-        ],
-      },
+      name: 'Sparkling Beverages',
+      slug: 'sparkling-beverages',
     },
   });
 
-  // Product 2: Diet Lime Soda (Drink)
-  await prisma.product.create({
+  const categoryJuices = await (prisma as any).category.create({
     data: {
-      name: 'Diet Lime Soda',
-      description: 'Zesty lime soda with zero sugar and calories.',
-      categoryId: softDrinks.id,
-      status: 'ACTIVE',
-      specs: {
-        volumeMl: 500,
-        ingredients: ['Carbonated Water', 'Citric Acid', 'Natural Lime Flavor', 'Sucralose', 'Sodium Benzoate'],
-        sugarGrams: 0,
-        caffeineMg: 0,
-        packagingType: 'BOTTLE',
-      },
-      variants: {
-        create: [
-          {
-            name: 'Single Bottle (500ml)',
-            sku: 'LIME-500ML-BOTTLE',
-            price: 1.79,
-            inventory: {
-              create: {
-                stock: 80,
-                warehouse: 'Main Warehouse - Aisle 4',
-              },
-            },
-          },
-        ],
-      },
+      name: 'Natural Juices',
+      slug: 'natural-juices',
     },
   });
 
-  // Product 3: Quantum Charge Energy (Drink)
-  await prisma.product.create({
+  const categoryEnergy = await (prisma as any).category.create({
     data: {
-      name: 'Quantum Charge Energy',
-      description: 'High-octane energy drink with B-vitamins and taurine to charge your day.',
-      categoryId: energyDrinks.id,
-      status: 'ACTIVE',
-      specs: {
-        volumeMl: 250,
-        ingredients: ['Carbonated Water', 'Sucrose', 'Glucose', 'Citric Acid', 'Taurine', 'Caffeine', 'Niacin', 'Vitamin B6', 'Vitamin B12'],
-        sugarGrams: 27,
-        caffeineMg: 80,
-        packagingType: 'CAN',
-      },
-      variants: {
-        create: [
-          {
-            name: 'Single Energy Can (250ml)',
-            sku: 'QUANTUM-250ML-CAN',
-            price: 2.49,
-            inventory: {
-              create: {
-                stock: 150,
-                warehouse: 'Main Warehouse - Aisle 5',
-              },
-            },
-          },
-        ],
-      },
+      name: 'Energy & Health Drinks',
+      slug: 'energy-health-drinks',
     },
   });
 
-  // Product 4: DDIA (Book)
-  const ddiaProduct = await prisma.product.create({
+  console.log('Created categories.');
+
+  // 3. Create Sample Buyers
+  const buyer1 = await (prisma as any).buyer.create({
     data: {
-      name: 'Designing Data-Intensive Applications',
-      description: 'The definitive guide to data system architectures, storage engines, processing models, and distribution networks.',
-      categoryId: techBooks.id,
+      name: 'Metro Hypermarket Ltd',
+      email: 'procurement@metro-hypermarket.com',
+      phone: '+1 555-019-2831',
+      address: '742 Evergreen Terrace, Sector 4, Springfield',
       status: 'ACTIVE',
-      specs: {
-        isbn: '9781449373320',
-        author: 'Martin Kleppmann',
-        publisher: "O'Reilly Media",
-        pageCount: 616,
-        language: 'English',
-        publishYear: 2017,
-      },
-      variants: {
-        create: [
-          {
-            name: 'Paperback Edition',
-            sku: 'BOOK-DDIA-PB',
-            price: 44.99,
-            inventory: {
-              create: {
-                stock: 25,
-                warehouse: 'Secondary Warehouse - Row B',
-              },
-            },
-          },
-          {
-            name: 'Hardcover Edition',
-            sku: 'BOOK-DDIA-HC',
-            price: 59.99,
-            inventory: {
-              create: {
-                stock: 10,
-                warehouse: 'Secondary Warehouse - Row B',
-              },
-            },
-          },
-        ],
-      },
+      categoryId: categorySparkling.id,
     },
   });
 
-  // Product 5: Clean Code (Book)
-  await prisma.product.create({
+  const buyer2 = await (prisma as any).buyer.create({
     data: {
-      name: 'Clean Code',
-      description: 'A handbook of agile software craftsmanship, filled with best practices and code examples.',
-      categoryId: techBooks.id,
+      name: 'Pacific Coast Distributors',
+      email: 'orders@pacificdistributors.com',
+      phone: '+1 555-014-9922',
+      address: '108 Ocean Boulevard, Suite 500, San Diego, CA',
       status: 'ACTIVE',
-      specs: {
-        isbn: '9780132350884',
-        author: 'Robert C. Martin',
-        publisher: 'Prentice Hall',
-        pageCount: 464,
-        language: 'English',
-        publishYear: 2008,
-      },
-      variants: {
-        create: [
-          {
-            name: 'Paperback Edition',
-            sku: 'BOOK-CC-PB',
-            price: 37.50,
-            inventory: {
-              create: {
-                stock: 30,
-                warehouse: 'Secondary Warehouse - Row B',
-              },
-            },
-          },
-        ],
-      },
+      categoryId: categoryJuices.id,
     },
   });
 
-  console.log('Products and Inventory seeded successfully.');
-  console.log('Database seeding complete!');
+  const buyer3 = await (prisma as any).buyer.create({
+    data: {
+      name: 'Apex Retail Chain',
+      email: 'supplies@apexretail.org',
+      phone: '+1 555-018-7741',
+      address: '420 Madison Avenue, New York, NY',
+      status: 'ACTIVE',
+      categoryId: categoryEnergy.id,
+    },
+  });
+
+  const buyer4 = await (prisma as any).buyer.create({
+    data: {
+      name: 'Blue Horizon Grocers',
+      email: 'contact@bluehorizongrocers.com',
+      phone: '+1 555-012-3456',
+      address: '15 Harbor Way, Seattle, WA',
+      status: 'ACTIVE',
+      categoryId: categorySparkling.id,
+    },
+  });
+
+  console.log('Created sample buyers.');
+
+  // 4. Create Sample Orders
+  const now = new Date();
+  const daysAgo = (days: number) => new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
+
+  const sampleOrders = [
+    {
+      buyerId: buyer1.id,
+      buyerName: buyer1.name,
+      quantity: 120,
+      amount: 1440.00,
+      description: '120 cases of Lemon-Lime Sparkling Soda (24-pack)',
+      orderDate: daysAgo(1),
+      status: 'COMPLETED',
+    },
+    {
+      buyerId: buyer1.id,
+      buyerName: buyer1.name,
+      quantity: 80,
+      amount: 1040.00,
+      description: '80 cases of Wild Berry Fizz (500ml glass bottles)',
+      orderDate: daysAgo(12),
+      status: 'COMPLETED',
+    },
+    {
+      buyerId: buyer2.id,
+      buyerName: buyer2.name,
+      quantity: 250,
+      amount: 3750.00,
+      description: '250 cartons of 100% Organic Cold-Pressed Orange Juice',
+      orderDate: daysAgo(3),
+      status: 'COMPLETED',
+    },
+    {
+      buyerId: buyer2.id,
+      buyerName: buyer2.name,
+      quantity: 150,
+      amount: 2250.00,
+      description: '150 cartons of Tropical Passion Mango Nectar',
+      orderDate: daysAgo(18),
+      status: 'COMPLETED',
+    },
+    {
+      buyerId: buyer3.id,
+      buyerName: buyer3.name,
+      quantity: 500,
+      amount: 6500.00,
+      description: '500 packs of Nitro Boost Electrolite Drink (12-can packs)',
+      orderDate: daysAgo(5),
+      status: 'COMPLETED',
+    },
+    {
+      buyerId: buyer3.id,
+      buyerName: buyer3.name,
+      quantity: 300,
+      amount: 3900.00,
+      description: '300 packs of Zero Sugar Focus Berry Elixir',
+      orderDate: daysAgo(25),
+      status: 'COMPLETED',
+    },
+    {
+      buyerId: buyer4.id,
+      buyerName: buyer4.name,
+      quantity: 90,
+      amount: 1125.00,
+      description: '90 cases of Ginger Mint Craft Soda',
+      orderDate: daysAgo(7),
+      status: 'PENDING',
+    },
+    {
+      buyerId: null,
+      buyerName: 'Sunrise Hospitality Group',
+      quantity: 60,
+      amount: 900.00,
+      description: '60 cartons of Blood Orange Sparkling Splash (Walk-in order)',
+      orderDate: daysAgo(2),
+      status: 'COMPLETED',
+    },
+  ];
+
+  for (const order of sampleOrders) {
+    await (prisma as any).order.create({
+      data: order,
+    });
+  }
+
+  console.log(`Successfully seeded ${sampleOrders.length} orders!`);
+
+  // 5. Create Sample Tasks
+  await (prisma as any).task?.deleteMany({});
+
+  const sampleTasks = [
+    {
+      title: 'Restock Lemon-Lime Sparkling Soda inventory',
+      description: 'Warehouse A is down to 40 cases. Coordinate with bottling plant for a 500-case restock batch.',
+      status: 'TODO',
+      priority: 'HIGH',
+      dueDate: new Date(now.getTime() + 1 * 24 * 60 * 60 * 1000),
+    },
+    {
+      title: 'Send quarterly wholesale invoice to Pacific Coast Distributors',
+      description: 'Reconcile March shipments and email final signed commercial invoice with net-30 terms.',
+      status: 'IN_PROGRESS',
+      priority: 'URGENT',
+      dueDate: new Date(now.getTime() + 12 * 60 * 60 * 1000),
+    },
+    {
+      title: 'Inspect cold storage unit temperature sensors',
+      description: 'Routine maintenance check on refrigeration sensors in Bay 3 and Bay 4.',
+      status: 'TODO',
+      priority: 'MEDIUM',
+      dueDate: new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000),
+    },
+    {
+      title: 'Follow up with Metro Hypermarket on summer promo catalog',
+      description: 'Confirm SKU listings and promotional retail endcap placement for July release.',
+      status: 'COMPLETED',
+      priority: 'HIGH',
+      dueDate: daysAgo(1),
+    },
+    {
+      title: 'Review supplier ingredient certifications for Organic Orange Juice',
+      description: 'Audit organic compliance certificates and lot tracking records for Florida citrus vendors.',
+      status: 'COMPLETED',
+      priority: 'LOW',
+      dueDate: daysAgo(4),
+    },
+  ];
+
+  for (const task of sampleTasks) {
+    await (prisma as any).task.create({
+      data: task,
+    });
+  }
+
+  console.log(`Successfully seeded ${sampleTasks.length} tasks!`);
 }
 
 main()

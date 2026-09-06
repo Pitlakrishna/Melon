@@ -32,12 +32,11 @@ export default function ThemeSwitcher() {
         style={{
           background: 'var(--bg-card)',
           borderColor: 'var(--border-subtle)',
-          color: 'var(--text-primary)',
         }}
         title="Change Theme"
       > 
-        <IoColorPaletteOutline className="text-base" style={{ color: 'var(--text-secondary)' }} />
-        <span className="hidden sm:inline text-xs font-semibold">{activeTheme.name}</span>
+        <IoColorPaletteOutline className="text-base" style={{ color: 'var(--accent)'  }} />
+        {/* <span className="hidden sm:inline text-xs font-semibold">{activeTheme.name}</span> */}
       </button>
 
       {isOpen && (

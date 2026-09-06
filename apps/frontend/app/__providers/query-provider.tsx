@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider } from '@/context/ThemeContext';
+import { ToastProvider } from '@/context/ToastContext';
 
 export default function QueryProvider({ children }: { children: React.ReactNode }) {
   // Use state to ensure the query client is instantiated only once per session
@@ -13,6 +14,7 @@ export default function QueryProvider({ children }: { children: React.ReactNode 
           queries: {
             staleTime: 60 * 1000, // 1 minute
             refetchOnWindowFocus: false,
+            retry: 1,
           },
         },
       })
@@ -21,8 +23,11 @@ export default function QueryProvider({ children }: { children: React.ReactNode 
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
-        {children}
+        <ToastProvider>
+          {children}
+        </ToastProvider>
       </ThemeProvider>
     </QueryClientProvider>
   );
 }
+

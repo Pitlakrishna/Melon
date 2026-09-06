@@ -1,9 +1,12 @@
 import { Request, Response, NextFunction } from 'express';
-import { prisma } from '../services/db.service';
+import { categoryService } from '../services/category.service';
+import { createCategorySchema, updateCategorySchema } from '../models/category.model';
+import { AppError } from '../utils/app-error';
+import { ZodError } from 'zod';
 
 export const getCategories = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const categories = await prisma.category.findMany();
+    const categories = await categoryService.getAllCategories();
     res.status(200).json({
       status: 'success',
       data: categories,
@@ -13,37 +16,45 @@ export const getCategories = async (req: Request, res: Response, next: NextFunct
   }
 };
 
-export const createCategories = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const getCategoryById = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const { name, slug } = req.body;
-
-    if (!name || typeof name !== 'string' || !name.trim()) {
-      res.status(400).json({
-        status: 'fail',
-        message: 'Category name is required',
-      });
+    const { id } = req.params;
+    const category = await categoryService.getCategoryById(id);
+    res.status(200).json({
+      status: 'success',
+      data: category,
+    });
+  } catch (error) {
+    if (error instanceof AppError) {
+      res.status(error.statusCode).json({ status: error.status, message: error.message });
       return;
     }
+    next(error);
+  }
+};
 
-    const cleanName = name.trim();
-    const cleanSlug = (slug && typeof slug === 'string' && slug.trim() ? slug : cleanName)
-      .toLowerCase()
-      .trim()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-+|-+$/g, '');
-
-    const category = await prisma.category.create({
-      data: {
-        name: cleanName,
-        slug: cleanSlug,
-      },
-    });
+export const createCategories = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const validatedData = createCategorySchema.parse(req.body);
+    const category = await categoryService.createCategory(validatedData);
 
     res.status(201).json({
       status: 'success',
       data: category,
     });
   } catch (error: any) {
+    if (error instanceof ZodError) {
+      res.status(400).json({
+        status: 'fail',
+        message: error.errors[0]?.message || 'Category name is required',
+        errors: error.errors,
+      });
+      return;
+    }
+    if (error instanceof AppError) {
+      res.status(error.statusCode).json({ status: error.status, message: error.message });
+      return;
+    }
     if (error.code === 'P2002') {
       res.status(409).json({
         status: 'fail',
@@ -58,30 +69,16 @@ export const createCategories = async (req: Request, res: Response, next: NextFu
 export const editCategories = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const id = (req.params.id || req.body.id) as string;
-    const { name } = req.body;
-
-    if (!id || !name || typeof name !== 'string' || !name.trim()) {
+    if (!id) {
       res.status(400).json({
         status: 'fail',
-        message: 'Category ID and name are required',
+        message: 'Category ID is required',
       });
       return;
     }
 
-    const cleanName = name.trim();
-    const cleanSlug = cleanName
-      .toLowerCase()
-      .trim()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-+|-+$/g, '');
-
-    const category = await prisma.category.update({
-      where: { id },
-      data: {
-        name: cleanName,
-        slug: cleanSlug,
-      },
-    });
+    const validatedData = updateCategorySchema.parse(req.body);
+    const category = await categoryService.updateCategory(id, validatedData);
 
     res.status(200).json({
       status: 'success',
@@ -89,6 +86,18 @@ export const editCategories = async (req: Request, res: Response, next: NextFunc
       data: category,
     });
   } catch (error: any) {
+    if (error instanceof ZodError) {
+      res.status(400).json({
+        status: 'fail',
+        message: error.errors[0]?.message || 'Invalid input data',
+        errors: error.errors,
+      });
+      return;
+    }
+    if (error instanceof AppError) {
+      res.status(error.statusCode).json({ status: error.status, message: error.message });
+      return;
+    }
     if (error.code === 'P2002') {
       res.status(409).json({
         status: 'fail',
@@ -118,15 +127,17 @@ export const deleteCategory = async (req: Request, res: Response, next: NextFunc
       return;
     }
 
-    await prisma.category.delete({
-      where: { id },
-    });
+    await categoryService.deleteCategory(id);
 
     res.status(200).json({
       status: 'success',
       message: 'Category has been deleted successfully',
     });
   } catch (error: any) {
+    if (error instanceof AppError) {
+      res.status(error.statusCode).json({ status: error.status, message: error.message });
+      return;
+    }
     if (error.code === 'P2025') {
       res.status(404).json({
         status: 'fail',

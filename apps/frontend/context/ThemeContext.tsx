@@ -34,17 +34,31 @@ const ThemeContext = createContext<ThemeContextType>({
 });
 
 export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
-  const [theme, setThemeState] = useState<ThemeName>('light');
+  const [theme, setThemeState] = useState<ThemeName>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem('app-theme') as ThemeName;
+        if (saved && THEMES.some((t) => t.id === saved)) {
+          return saved;
+        }
+      } catch (e) {}
+    }
+    return 'light';
+  });
 
   useEffect(() => {
-    // Load from local storage on mount
-    const saved = localStorage.getItem('app-theme') as ThemeName;
-    if (saved && THEMES.some((t) => t.id === saved)) {
-      setThemeState(saved);
-      document.documentElement.setAttribute('data-theme', saved);
-    } else {
-      document.documentElement.setAttribute('data-theme', 'light');
-    }
+    // Ensure document attribute matches on mount
+    try {
+      const saved = localStorage.getItem('app-theme') as ThemeName;
+      if (saved && THEMES.some((t) => t.id === saved)) {
+        if (theme !== saved) {
+          setThemeState(saved);
+        }
+        document.documentElement.setAttribute('data-theme', saved);
+      } else {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    } catch (e) {}
   }, []);
 
   const setTheme = (newTheme: ThemeName) => {

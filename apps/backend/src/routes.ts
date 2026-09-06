@@ -1,11 +1,3 @@
-import { Router } from 'express';
-import * as categoryController from './controllers/category.controller';
+import routes from './routes/index';
 
-const router = Router();
-
-router.get('/categories', categoryController.getCategories);
-router.post('/categories', categoryController.createCategories);
-router.patch('/categories/:id', categoryController.editCategories);
-router.delete('/categories/:id', categoryController.deleteCategory);
-
-export default router;
+export default routes;

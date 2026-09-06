@@ -118,13 +118,12 @@
 }
 
 .cardTitle {
-  font-size: 1.125rem;
+  font-size: 13px;
   font-weight: 700;
   color: var(--text-primary);
   transition: color 0.2s ease-in-out;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .cardCategory:hover .cardTitle {
@@ -177,12 +176,12 @@
 /* Inputs */
 .inputField {
   width: 100%;
-  padding: 0.75rem 1rem;
+  padding: 0.5rem 0.75rem;
   background: var(--bg-card);
   border: 1px solid var(--border-subtle);
-  border-radius: 0.75rem;
+  border-radius: 0.5rem;
   color: var(--text-primary);
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   outline: none;
   transition: all 0.2s ease-in-out;
 }
@@ -194,6 +193,34 @@
 
 .inputField::placeholder {
   color: var(--text-secondary);
+}
+
+.inputError {
+  border-color: #f43f5e !important;
+  box-shadow: 0 0 0 2px rgba(244, 63, 94, 0.18) !important;
+}
+
+.fieldError {
+  display: flex;
+  justify-self: end;
+  gap: 0.25rem;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  color: #f43f5e;
+  line-height: 1;
+}
+
+.alertBanner {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.65rem;
+  border-radius: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #fca5a5;
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.25);
 }
 
 .inputSearch {
@@ -262,13 +289,14 @@
 }
 
 .cardAvatar {
-  width: 2.25rem;
-  height: 2.25rem;
+  width: 2rem;
+  height: 2rem;
   border-radius: 0.75rem;
   background: var(--accent-subtle);
   border: 1px solid var(--accent-subtle-border);
   display: flex;
   align-items: center;
+  align-self: start;
   justify-content: center;
   color: var(--text-accent);
   flex-shrink: 0;
