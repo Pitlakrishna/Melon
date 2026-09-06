@@ -3,9 +3,11 @@ import categoryRoutes from './category.routes';
 import buyerRoutes from './buyer.routes';
 import orderRoutes from './order.routes';
 import taskRoutes from './task.routes';
+import authRoutes from './auth.routes';
 
 const router = Router();
 
+router.use('/auth', authRoutes);
 router.use('/categories', categoryRoutes);
 router.use('/buyer', buyerRoutes);
 router.use('/buyers', buyerRoutes); // Optional plural alias for standard REST conventions

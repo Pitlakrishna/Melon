@@ -1,13 +1,26 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { TbCategoryPlus } from "react-icons/tb";
 import { CiUser } from "react-icons/ci";
 import { IoBagHandleOutline } from "react-icons/io5";
 import { MdOutlineTaskAlt } from "react-icons/md";
+import { LogOut } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
+import { useToast } from '@/context/ToastContext';
+
 export default function Sidebar() {
   const pathname = usePathname();
+  const router = useRouter();
+  const { user, logout } = useAuth();
+  const toast = useToast();
+
+  const handleLogout = () => {
+    logout();
+    toast.info('You have been logged out.');
+    router.push('/login');
+  };
 
   const navItems = [
     { name: 'Categories', href: '/category', icon: <TbCategoryPlus size={17} /> },
@@ -62,20 +75,71 @@ export default function Sidebar() {
         })}
       </nav>
 
-      {/* Theme Switcher & Home link */}
+      {/* User Profile & Actions */}
       <div
-        className="p-4 border-t space-y-3"
+        className="p-4 border-t space-y-2.5"
         style={{ borderColor: 'var(--border-subtle)' }}
       >
+        {user && (
+          <div
+            className="flex items-center gap-3 p-2.5 rounded-xl border"
+            style={{
+              background: 'var(--accent-subtle)',
+              borderColor: 'var(--accent-subtle-border)',
+            }}
+          >
+            <div
+              className="w-9 h-9 rounded-full flex items-center justify-center font-bold text-xs text-white shrink-0 shadow-sm"
+              style={{ backgroundImage: 'var(--accent-gradient)' }}
+            >
+              {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
+            </div>
+            <div className="flex-1 min-w-0">
+              <div
+                className="text-xs font-semibold truncate"
+                style={{ color: 'var(--text-primary)' }}
+                title={user.name}
+              >
+                {user.name}
+              </div>
+              <div
+                className="text-[11px] truncate opacity-75"
+                style={{ color: 'var(--text-secondary)' }}
+                title={user.email}
+              >
+                {user.email}
+              </div>
+            </div>
+          </div>
+        )}
 
-        <Link
-          href="/"
-          className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 hover:opacity-80"
-          style={{ color: 'var(--text-secondary)' }}
-        >
-          <span>🏠</span>
-          Home
-        </Link>
+        <div className="flex items-center gap-1.5">
+          <Link
+            href="/"
+            className="flex-1 flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold transition-all duration-200 hover:opacity-80"
+            style={{ color: 'var(--text-secondary)' }}
+          >
+            <span>🏠</span>
+            Home
+          </Link>
+
+          {user && (
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all duration-200 hover:opacity-90 cursor-pointer border"
+              style={{
+                background: 'rgba(239, 68, 68, 0.1)',
+                color: '#ef4444',
+                borderColor: 'rgba(239, 68, 68, 0.25)',
+              }}
+              title="Log out of session"
+            >
+              <LogOut size={13} />
+              Logout
+            </button>
+          )}
+        </div>
       </div>
     </aside>
   );

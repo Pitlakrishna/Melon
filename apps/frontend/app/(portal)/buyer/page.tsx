@@ -552,7 +552,6 @@ export default function BuyerPage() {
                           <span className="text-xs opacity-40">—</span>
                         )}
                       </td>
-
                       {/* Address */}
                       <td>
                         {buyer.address ? (

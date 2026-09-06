@@ -824,7 +824,7 @@ function OrderHistoryContent() {
 
         {/* Modal: Add or Edit Order */}
         <Form modelOpen={openModal} setModelOpen={setOpenModal}>
-          <div className="p-6 md:p-8 space-y-6">
+          <div className=" space-y-6">
             <div className="border-b pb-4" style={{ borderColor: 'var(--border-subtle)' }}>
               <h2 className="text-xl font-bold tracking-tight">
                 {editingOrder ? 'Edit Buyer Order' : 'Record New Buyer Order'}

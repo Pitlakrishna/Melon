@@ -777,7 +777,7 @@ function TasksContent() {
 
         {/* Modal: Add or Edit Task */}
         <Form modelOpen={openModal} setModelOpen={setOpenModal}>
-          <div className="p-6 md:p-8 space-y-5">
+          <div className=" space-y-5">
             <div className="border-b pb-3" style={{ borderColor: 'var(--border-subtle)' }}>
               <h2 className="text-xl font-bold tracking-tight">
                 {editingTask ? 'Edit Task' : 'Create New Task'}
