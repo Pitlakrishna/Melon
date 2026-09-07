@@ -26,7 +26,8 @@
 
 /* 2. WARM CREAM (Warm Beige Paper Background, Rich Bronze & Golden Amber) */
 [data-theme="cream"] {
-  --bg-page: #faf6ee;
+  /* --bg-page: #faf6ee; */
+  --bg-page: #ffffff;
   --bg-sidebar: #f4ede2;
   --bg-card: #ffffff;
   --bg-card-hover: #f8f3ea;
@@ -74,7 +75,8 @@
 
 /* 4. CYBER EMERALD (Vibrant Forest Jade & Mint - Not overly dark) */
 [data-theme="emerald"] {
-  --bg-page: #f6fbf9;
+  /* --bg-page: #f6fbf9; */
+  --bg-page: #ffffff;
   --bg-sidebar: #ecfdf5;
   --bg-card: #ffffff;
   --bg-card-hover: #f0fdf4;
@@ -98,7 +100,8 @@
 
 /* 5. SUNSET RUBY (Rich Velvet Plum & Rose - Not overly dark) */
 [data-theme="ruby"] {
-  --bg-page: #faf8f9;
+  /* --bg-page: #faf8f9; */
+  --bg-page: #ffffff;
   --bg-sidebar: #fdf2f8;
   --bg-card: #ffffff;
   --bg-card-hover: #fdf2f8;

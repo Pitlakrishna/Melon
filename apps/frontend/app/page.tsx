@@ -84,7 +84,7 @@ export default function Home() {
             className="text-4xl sm:text-6xl font-extrabold tracking-tight bg-clip-text text-transparent drop-shadow-sm"
             style={{ backgroundImage: 'var(--accent-gradient)' }}
           >
-            Category Management Portal
+            Business Management Portal
           </h1>
 
           <p
@@ -109,7 +109,7 @@ export default function Home() {
               </Link>
             ) : (
               <>
-                <Link
+                {/* <Link
                   href="/login?redirect=/category"
                   className="px-6 py-3.5 rounded-xl font-semibold text-sm transition-all duration-200 shadow-sm cursor-pointer inline-flex items-center gap-2 border hover:scale-[1.02] active:scale-[0.98]"
                   style={{
@@ -120,7 +120,7 @@ export default function Home() {
                 >
                   <ShieldCheck size={16} style={{ color: 'var(--text-accent)' }} />
                   Access Dashboard
-                </Link>
+                </Link> */}
                 <Link
                   href="/register"
                   className="px-6 py-3.5 rounded-xl font-semibold text-sm transition-all duration-200 shadow-sm cursor-pointer inline-flex items-center gap-2 text-white hover:scale-[1.02] active:scale-[0.98]"
